@@ -50,8 +50,18 @@ function chartPanel(title,sublabel,values,tone='green') {
 }
 
 function table(headers, rows) {
-  return `<div class="table-wrap"><table><thead><tr>${headers.map(label=>`<th scope="col">${label}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(row=>`<tr>${row.map(cell=>`<td>${cell}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${headers.length}">No matching records.</td></tr>`}</tbody></table></div>`;
+  const headings=headers.map(label=>`<th scope="col" role="columnheader">${label||'<span class="sr-only">Actions</span>'}</th>`).join('');
+  const records=rows.map(row=>{
+    const cells=row.map((cell,index)=>{
+      const label=headers[index];
+      if(index===0) return `<td class="record-title" role="cell">${cell}</td>`;
+      if(!label) return `<td class="record-action" role="cell">${cell}</td>`;
+      return `<td role="cell"><span class="record-label" aria-hidden="true">${label}</span>${cell}</td>`;
+    }).join('');
+    return `<tr role="row">${cells}</tr>`;
+  }).join('');
+  return `<div class="table-wrap"><table class="record-table" role="table"><thead role="rowgroup"><tr role="row">${headings}</tr></thead>
+    <tbody role="rowgroup">${records||`<tr role="row"><td class="record-empty" colspan="${headers.length}" role="cell">No matching records.</td></tr>`}</tbody></table></div>`;
 }
 function periodSelect() {return `<label class="period-control">${icon('clock',16)}<select aria-label="Report period" name="period">${['This week','Last week'].map(period=>`<option ${state.period===period?'selected':''}>${period}</option>`).join('')}</select></label>`;}
 const textFilter = (name,placeholder) => `<label class="search-field">${icon('search',18)}<input name="${name}" data-table-search type="search" value="${safe(state.tableQuery)}" placeholder="${placeholder}" aria-label="${placeholder}"></label>`;
@@ -77,7 +87,7 @@ function vendorOrders() {
 function vendorMenu() {
   const menu=meals.filter(meal=>meal.vendor==='The Jollof Room');
   return opLayout('vendor','Menu management','Update the dishes available to order.',
-    `<section class="ops-panel"><div class="section-title"><h2>All dishes</h2>${textFilter('vendor-menu','Search dishes')}</div>
+    `<section class="ops-panel"><div class="list-controls"><h2>All dishes</h2>${textFilter('vendor-menu','Search dishes')}</div>
     ${table(['Dish','Category','Price','Availability',''],menu.filter(meal=>hasQuery([meal.name,meal.category])).map(meal=>[
       `<div class="cell-person">${thumb(meal.img)}<strong>${meal.name}</strong></div>`,meal.category,money(meal.price),
       statusBadge(state.offMenu.includes(meal.id)?'Paused':'Available'),action('menu:'+meal.id,state.offMenu.includes(meal.id)?'Make available':'Pause','button outline small')
