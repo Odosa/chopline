@@ -1,6 +1,8 @@
 'use strict';
 
 const icons = {
+  moon:'<path d="M20.9 13.3A9 9 0 0 1 10.7 3.1a9 9 0 1 0 10.2 10.2Z"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',
   search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>', pin:'<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
   bag:'<path d="M5 8h14l2 13H3L5 8Z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/>', home:'<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',
   grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
@@ -96,6 +98,12 @@ const firstScreen = {landing:'landing',customer:'login',vendor:'vendor-home',kit
 const palette = [
   ['Paper','#FBF5E9','Background'], ['Ink Plum','#251521','Text & administration'], ['Persimmon','#FF643C','Customer actions'],
   ['Orchid','#E8CEF5','Customer discovery'], ['Sky','#CEE4F5','Rider & tracking'], ['Celadon','#DFE9C9','Vendor workspace'], ['Butter','#FFE18A','Kitchen & promotions'], ['Blush','#F1D6E1','Admin presentation']
+];
+
+const darkPalette = [
+  ['Ink Plum','#171219','Background'],['Warm Plum','#241B26','Cards & panels'],['Raised Plum','#302432','Dropdowns'],
+  ['Warm Cream','#FBF2E8','Primary text'],['Soft Lilac','#C9B9C7','Secondary text'],['Persimmon','#FF805F','Primary actions'],
+  ['Orchid','#E8CEF5','Keyboard focus'],['Celadon','#304333','Vendor & availability']
 ];
 
 const references = [

@@ -58,9 +58,13 @@ function frame([id,label],type,solo) {
     <figcaption><a href="${screenUrl(id)}">${label} ${icon('external',13)}</a></figcaption>
   </figure>`;
 }
+function paletteSwatches() {
+  const colors=document.documentElement.dataset.theme==='dark'?darkPalette:palette;
+  return colors.map(([name,color,usage])=>`<article><span style="--swatch:${color}"></span><strong>${name}</strong><code>${color}</code><small>${usage}</small></article>`).join('');
+}
 function systemBoard() {
   return `<div class="system-area">
-    <div class="swatches">${palette.map(([name,color,usage])=>`<article><span style="--swatch:${color}"></span><strong>${name}</strong><code>${color}</code><small>${usage}</small></article>`).join('')}</div>
+    <div class="swatches">${paletteSwatches()}</div>
     <div class="system-components">
       <article><span class="eyebrow">TYPOGRAPHY</span><h2>Aa</h2><strong>Bricolage Grotesque</strong><p>DM Sans for content, labels and numbers.</p></article>
       <article><span class="eyebrow">INTERACTION</span><div class="component-example"><span class="button primary">Order food</span><span class="button outline">Browse menu</span></div><div class="example-input">${icon('search',18)} Search dishes or kitchens</div></article>
@@ -86,7 +90,7 @@ function renderShowcase() {
   const boardCount=board.screens.length;
   app.innerHTML=`${header(group)}<main class="show-main">
     <div class="show-intro"><div><p class="eyebrow">CHOPLINE PRODUCT DESIGN</p><h1>${group==='customer'?'Customer experience':data.label}</h1></div>
-      <div class="show-controls"><a href="#design" class="button outline system-link" ${group==='design'?'aria-current="page"':''}>${icon('grid',16)} Design system</a><button data-action="fullscreen" class="icon-button" title="Present current board" aria-label="Present current board">${icon('desktop',19)}</button></div></div>
+      <div class="show-controls"><a href="#design" class="button outline system-link" ${group==='design'?'aria-current="page"':''}>${icon('grid',16)} Design system</a>${themeButton()}<button data-action="fullscreen" class="icon-button" title="Present current board" aria-label="Present current board">${icon('desktop',19)}</button></div></div>
     <div class="show-tabs"><nav aria-label="${data.label} boards">${data.items.map(item=>`<a href="\#${group}/${item.id}" ${item===board?'aria-current="page"':''}>${item.tab}</a>`).join('')}</nav>
     ${boardCount?`<span class="screen-count">${icon(board.type,18)} ${boardCount} ${boardCount===1?'screen':'screens'}</span>`:''}</div>
     <section class="artboard screen-enter tone-${board.tone} ${board.type}-board ${boardCount===1?'solo-board':''}" aria-label="${board.note}">
@@ -106,8 +110,8 @@ function screenBar() {
   const [board,boardID]=getBoardFor(screen);
   return `<header class="prototype-bar"><a href="${boardUrl(board,boardID)}">${icon('left',17)} <span>Back to boards</span></a>
     <div>${logo()}<span class="prototype-context">Interactive prototype</span></div>
-    <label class="sr-only" for="prototype-screen">Jump to screen</label><select id="prototype-screen" name="prototype-screen">${Object.entries(journeys).map(([journey,ids])=>
-    `<optgroup label="${journey==='desktop'?'Customer desktop':boards[journey].label}">${ids.map(id=>`<option value="${id}" ${id===screen?'selected':''}>${screenTitles[id]}${journey==='landing'?(id==='landing'?' · Desktop':' · Mobile'):''}</option>`).join('')}</optgroup>`).join('')}</select></header>`;
+    <div class="prototype-controls">${themeButton()}<select id="prototype-screen" name="prototype-screen" aria-label="Jump to screen">${Object.entries(journeys).map(([journey,ids])=>
+    `<optgroup label="${journey==='desktop'?'Customer desktop':boards[journey].label}">${ids.map(id=>`<option value="${id}" ${id===screen?'selected':''}>${screenTitles[id]}${journey==='landing'?(id==='landing'?' · Desktop':' · Mobile'):''}</option>`).join('')}</optgroup>`).join('')}</select></div></header>`;
 }
 function renderScreen({enter=true}={}) {
   const journey=getJourney(screen);
@@ -116,6 +120,7 @@ function renderScreen({enter=true}={}) {
   document.body.className=`${embed?'embedded':'prototype'} view-${kind} ${screen==='landing-mobile'?'responsive-mobile':''}`;
   document.title=`Chopline · ${screenTitles[screen]||'Prototype'}`;
   app.innerHTML=`${embed?'':screenBar()}<div class="live-screen${enter&&!embed?' screen-enter':''}">${allScreens[screen]()}</div>`;
+  enhancePickers(app,embed);
 }
 function navigate(id,{seed=false}={}) {
   if(!Object.hasOwn(allScreens,id)) return;
@@ -135,6 +140,7 @@ function openDialog(title,body) {
   previouslyFocused=document.activeElement;
   app.insertAdjacentHTML('beforeend',`<dialog id="demo-dialog" class="demo-dialog"><div class="section-title"><h2>${title}</h2>${iconBtn('close','Close dialog','data-action="close"')}</div>${body}</dialog>`);
   const dialog=document.querySelector('#demo-dialog');
+  enhancePickers(dialog);
   dialog.addEventListener('close',()=>{dialog.remove();previouslyFocused?.focus();});
   dialog.showModal();
 }
@@ -161,6 +167,7 @@ function updateScreen() {
 
 function handleAction(value) {
   const [name,argument,extra,modifier]=value.split(':');
+  if(name==='theme') return applyTheme(themeIcon()==='sun'?'light':'dark',true);
   if(name==='fullscreen') {
     const artboard=document.querySelector('.artboard');
     if(document.fullscreenElement) document.exitFullscreen();
@@ -169,10 +176,10 @@ function handleAction(value) {
   }
   if(name==='close') return document.querySelector('#demo-dialog')?.close();
   if(name==='location') {
-    return openDialog('Delivery area',`<form data-form="location" class="form-stack"><label>Neighborhood${areaSelect('location-area')}</label><label>Delivery details <input name="address" maxlength="70" placeholder="Sample delivery address" value="${safe(state.address)}"></label><button class="button primary full">Save delivery area</button></form>`);
+    return openDialog('Delivery area',`<form data-form="location" class="form-stack"><div class="field-stack"><span>Neighborhood</span>${areaSelect('location-area')}</div><label>Delivery details <input name="address" maxlength="70" placeholder="Sample delivery address" value="${safe(state.address)}"></label><button class="button primary full">Save delivery area</button></form>`);
   }
   if(name==='sort') {
-    return openDialog('Sort food',`<form data-form="sort" class="form-stack"><label>Sort by<select name="sort"><option value="recommended" ${state.sort==='recommended'?'selected':''}>Recommended</option><option value="price" ${state.sort==='price'?'selected':''}>Lowest price</option></select></label><button class="button primary full">Apply</button></form>`);
+    return openDialog('Sort food',`<form data-form="sort" class="form-stack"><div class="field-stack"><span>Sort by</span><select name="sort" aria-label="Sort by"><option value="recommended" ${state.sort==='recommended'?'selected':''}>Recommended</option><option value="price" ${state.sort==='price'?'selected':''}>Lowest price</option></select></div><button class="button primary full">Apply</button></form>`);
   }
   if(name==='contact') return openDialog('Contact', '<p>This is a sample profile for the prototype. Contact details are illustrative.</p>');
   if(name==='notifications') return openDialog('Notifications','<p>You’re up to date in this demo workspace.</p>');

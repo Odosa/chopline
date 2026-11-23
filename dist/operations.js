@@ -63,7 +63,7 @@ function table(headers, rows) {
   return `<div class="table-wrap"><table class="record-table" role="table"><thead role="rowgroup"><tr role="row">${headings}</tr></thead>
     <tbody role="rowgroup">${records||`<tr role="row"><td class="record-empty" colspan="${headers.length}" role="cell">No matching records.</td></tr>`}</tbody></table></div>`;
 }
-function periodSelect() {return `<label class="period-control">${icon('clock',16)}<select aria-label="Report period" name="period">${['This week','Last week'].map(period=>`<option ${state.period===period?'selected':''}>${period}</option>`).join('')}</select></label>`;}
+function periodSelect() {return `<div class="period-control">${icon('clock',16)}<select aria-label="Report period" name="period">${['This week','Last week'].map(period=>`<option ${state.period===period?'selected':''}>${period}</option>`).join('')}</select></div>`;}
 const textFilter = (name,placeholder) => `<label class="search-field">${icon('search',18)}<input name="${name}" data-table-search type="search" value="${safe(state.tableQuery)}" placeholder="${placeholder}" aria-label="${placeholder}"></label>`;
 const hasQuery = row => row.join(' ').toLowerCase().includes(state.tableQuery.trim().toLowerCase());
 

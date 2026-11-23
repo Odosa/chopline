@@ -8,7 +8,7 @@ const basketRows = () => Object.entries(state.cart).map(([key,qty])=>{
 const subtotal = () => basketRows().reduce((sum,{meal,qty})=>sum+meal.price*qty,0);
 const cartCount = () => basketRows().reduce((sum,{qty})=>sum+qty,0);
 const fee = () => cartCount() ? 1200 : 0;
-const areaSelect = (id='area') => `<select id="${id}" name="area">${areas.map(area=>`<option ${area===state.area?'selected':''}>${area}</option>`).join('')}</select>`;
+const areaSelect = (id='area') => `<select id="${id}" name="area" aria-label="Delivery area">${areas.map(area=>`<option ${area===state.area?'selected':''}>${area}</option>`).join('')}</select>`;
 
 function landingPage() {
   return `<main class="landing-page">

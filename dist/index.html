@@ -6,8 +6,17 @@
   <meta name="theme-color" content="#f9f5ec">
   <meta name="description" content="Chopline is an interactive food ordering and delivery design prototype.">
   <title>Chopline · Design showcase</title>
+  <script>
+    try {
+      if (localStorage.getItem('chopline-theme') === 'dark') {
+        document.documentElement.dataset.theme = 'dark';
+        document.querySelector('meta[name="theme-color"]').content = '#171219';
+      }
+    } catch {}
+  </script>
   <link rel="stylesheet" href="styles.css">
   <script defer src="content.js"></script>
+  <script defer src="controls.js"></script>
   <script defer src="customer.js"></script>
   <script defer src="operations.js"></script>
   <script defer src="app.js"></script>

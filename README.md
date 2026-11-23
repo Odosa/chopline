@@ -7,6 +7,7 @@ Open `dist/index.html` in a browser to view the showcase. To preview over HTTP, 
 - Choose a role and board from the showcase navigation.
 - Select a screen caption to open the interactive version, or choose **Play prototype** to start the role's journey.
 - Use the screen selector to jump between views. **Back to boards** returns to the corresponding board.
+- Use the moon or sun button to switch themes. The showcase, device previews, and interactive screens share your selection.
 - Open **Design system** for shared components, the product palette and the twelve-reference color study.
 - Use the presentation control to show the current board full-screen. The browser's print dialog can export the displayed board.
 
