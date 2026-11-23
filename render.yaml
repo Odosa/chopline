@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: chopline
+    runtime: static
+    buildCommand: test -s dist/index.html
+    staticPublishPath: ./dist
