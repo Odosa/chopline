@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shopline · UI state review</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.review{max-width:1040px;margin:auto;padding:25px 16px 48px}.bar,.actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.review h1{font-size:clamp(38px,7vw,68px);margin:32px 0 8px}.review label{font-weight:700}.review select,.review input{display:block;background:var(--white);border:1px solid var(--control-line);padding:10px;border-radius:9px;width:100%;margin-top:4px}.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px;margin:24px 0}.preview{margin:auto;background:var(--cream);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}.preview.phone{max-width:390px}.preview header{padding:14px 18px;border-bottom:1px solid var(--line);font-weight:800}.scene{padding:22px;display:grid;gap:13px;min-height:235px;align-content:start}.scene h2{font-size:30px}.skeleton{height:20px;border-radius:8px;background:var(--soft)}.skeleton.block{height:92px}.skeleton.short{width:58%}.validation{color:var(--story-accent)}.preview [aria-invalid=true]{border-color:var(--story-accent)}.note{margin-top:16px}
+</style>
+<main class="review">
+<div class="bar"><a href="index.html">‹ Back to prototype</a><button class="button outline" id="theme" aria-pressed="false">Dark mode</button></div>
+<h1>UI state review</h1><p>Preview how the existing design handles waiting, missing data, and recovery.</p>
+<div class="controls"><label>Screen<select id="screen"><option>Discover</option><option>Checkout</option><option>Vendor menu</option><option>Kitchen queue</option><option>Rider requests</option><option>Admin orders</option></select></label><label>State<select id="state"></select></label><label>Layout<select id="layout"><option>Phone</option><option>Desktop</option></select></label></div>
+<article class="preview phone"><header id="heading"></header><div class="scene" id="scene" aria-live="polite"></div></article>
+<p class="note">Illustrative review scenarios. Use the selectors to replay a state.</p>
+</main>
+<script>
+const el=id=>document.getElementById(id);
+const screens={
+ Discover:['restaurants','Browse restaurants','No restaurants nearby','Try another delivery area.'],
+ Checkout:['order summary','Review your order','Your cart is empty','Add a meal before checking out.'],
+ 'Vendor menu':['dishes','Manage dishes','Your menu is empty','Add your first dish to start taking orders.'],
+ 'Kitchen queue':['tickets','Review kitchen tickets','The queue is clear','New orders will appear here.'],
+ 'Rider requests':['requests','Review delivery requests','No requests nearby','Stay available to receive new requests.'],
+ 'Admin orders':['orders','Review orders','No orders yet','New orders will appear here.']
+};
+const labels={ready:'Default',loading:'Loading',empty:'Empty',results:'No results',error:'Recoverable error',offline:'Offline',validation:'Validation',submitting:'Submitting',success:'Success'};
+let timer;
+const button=(label,next)=>'<button class="button primary" data-next="'+next+'">'+label+'</button>';
+function options(){
+ const name=el('screen').value;
+ const keys=['ready','loading','empty',...(name==='Checkout'||name==='Kitchen queue'||name==='Rider requests'?[]:['results']),'error','offline',...(name==='Checkout'||name==='Vendor menu'?['validation','submitting','success']:[])];
+ el('state').replaceChildren(...keys.map(k=>new Option(labels[k],k))); render();
+}
+function render(){
+ clearTimeout(timer);
+ const name=el('screen').value, k=el('state').value,[noun,title,empty,help]=screens[name], checkout=name==='Checkout';
+ el('heading').textContent=name;
+ document.querySelector('.preview').classList.toggle('phone',el('layout').value==='Phone');
+ const lines=(t,p,a='')=>'<h2>'+t+'</h2><p>'+p+'</p>'+ (a?'<div class="actions">'+a+'</div>':'');
+ const states={
+ ready:()=>lines(title,checkout?'Your order is ready for a delivery address.':'Sample '+noun+' are ready to review.',checkout||name==='Vendor menu'?button(checkout?'Enter delivery details':'Add a dish','validation'):button('Refresh','loading')),
+ loading:()=>lines('Loading '+noun,'Getting the latest details.')+'<div aria-hidden="true" class="skeleton block"></div><div aria-hidden="true" class="skeleton short"></div>',
+ empty:()=>lines(empty,help,name==='Vendor menu'?button('Add a dish','validation'):name==='Checkout'?'<a class="button primary" href="index.html?screen=discover">Discover food</a>':button('Check again','loading')),
+ results:()=>lines('No matching '+noun,'Try a different search or clear your filters.',button('Clear filters','ready')),
+ error:()=>lines('Couldn’t load '+noun,'Try again to refresh this view.',button('Retry','loading')),
+ offline:()=>lines('You’re offline','Reconnect to refresh '+noun+'.',button('Check connection','loading')),
+ validation:()=>lines(checkout?'Delivery details':'New dish','Complete the required field.')+'<form><label>'+ (checkout?'Delivery address':'Dish name')+'<input name="value" required aria-invalid="true" aria-describedby="field-error"></label><p class="validation" id="field-error">This field is required.</p><button class="button primary">'+(checkout?'Place demo order':'Save demo dish')+'</button></form>',
+ submitting:()=>lines(checkout?'Placing your order':'Saving the dish','Please wait a moment.','<button class="button outline" disabled>Submitting…</button>'),
+ success:()=>lines(checkout?'Order confirmed':'Dish saved','This demo action completed successfully.',button('Back to overview','ready'))
+ };
+ el('scene').innerHTML=states[k]();
+}
+function move(k){el('state').value=k;render();}
+el('scene').onclick=e=>{const k=e.target.closest('[data-next]')?.dataset.next;if(k){move(k);if(k==='loading')timer=setTimeout(()=>move('ready'),950);}};
+el('scene').onsubmit=e=>{e.preventDefault();if(!e.target.elements.value.value.trim())return;move('submitting');timer=setTimeout(()=>move('success'),950);};
+el('screen').onchange=options;el('state').onchange=render;el('layout').onchange=render;
+function theme(dark){document.documentElement.dataset.theme=dark?'dark':'light';el('theme').textContent=dark?'Light mode':'Dark mode';el('theme').setAttribute('aria-pressed',String(dark));}
+try{theme(localStorage.getItem('chopline-theme')==='dark');}catch{}
+el('theme').onclick=()=>{const dark=document.documentElement.dataset.theme!=='dark';theme(dark);try{localStorage.setItem('chopline-theme',dark?'dark':'light');}catch{}};
+options();
+</script></html>
